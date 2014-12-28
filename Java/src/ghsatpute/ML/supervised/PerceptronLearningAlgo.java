@@ -24,6 +24,9 @@ import java.util.List;
  * 4. Last value in data row is outcome, for now we assume that it is 0 or 1
  * 
  * Trying to use dataset from here http://archive.ics.uci.edu/ml/datasets/Pima+Indians+Diabetes
+ * For this database after learning the algorithm when run on the same dataset to verify the output
+ * We got 61% accuracy for 1 iteration. Result does not improve with number of iterations.
+ * Maybe this can happen because dataset is linearly separable. 
  */
 
 // TODO: Need to make this singleton
@@ -50,36 +53,54 @@ public class PerceptronLearningAlgo {
 	
 	public PerceptronLearningAlgo(String fileName) 
 	{
-		// read the data from file
-		try 
-		{
-			 data = CSV.readCSVDouble(fileName);
-			 if(data == null) 
-			 {
-				 System.out.println("data is empty");
-			 }
-		}
-		catch(IOException ex)
-		{
-			System.out.println("Exception occurred " +  ex.getMessage());
-		}
-		learn();
+		this(fileName, 1);
+	}
+	
+	public PerceptronLearningAlgo(String fileName, int iterations) 
+	{	
+				
+				if(fileName == null)
+					throw new IllegalArgumentException("File name cannot be null");
+				
+				if(iterations < 0)
+					throw new IllegalArgumentException("iterations cannot be -ve " + iterations);
+				
+				// read the data from file
+				try 
+				{
+					 data = CSV.readCSVDouble(fileName);
+					 if(data == null) 
+					 {
+						 System.out.println("data is empty");
+					 }
+				}
+				catch(IOException ex)
+				{
+					System.out.println("Exception occurred " +  ex.getMessage());
+				}
+				
+				// Read the first array list from the list and set the number of columns
+				// Hence forth, we assume that all other rows will be consistent with first
+				numberOfColumns = data.get(0).size() - 1; // Last value is supposed to be outcome
+				
+				// Innitialize the weight to random numbers
+				// TODO: Can we do better?
+				for(int i = 0 ; i < numberOfColumns; i++) 
+				{
+					weight.add(Math.random());
+				}
+				
+				for(int i = 0 ; i < iterations; i++)
+				{
+					System.out.println("Iterations : " + i);
+					learn();
+				}
 	}
 	
 	private void learn() 
 	{
 		if(data == null)
 			return;
-		// Read the first array list from the list and set the number of columns
-		// Hence forth, we assume that all other rows will be consistent with first
-		numberOfColumns = data.get(0).size() - 1; // Last value is supposed to be outcome
-		
-		// Innitialize the weight to random numbers
-		// TODO: Can we do better?
-		for(int i = 0 ; i < numberOfColumns; i++) 
-		{
-			weight.add(Math.random());
-		}
 		
 		// For each observation
 		for(ArrayList<Double> row : data)
@@ -108,7 +129,7 @@ public class PerceptronLearningAlgo {
 			// Get actual outcome for current row
 			// Need to cast from Double to double and then to int
 			int actualOutput = (int) ((double)row.get(row.size() - 1));
-			System.out.println("Actual Output : " + actualOutput + " Program's output " + output);
+			//System.out.println("Actual Output : " + actualOutput + " Program's output " + output);
 			if(actualOutput != 0 && actualOutput != 1)
 			{
 				System.out.println("Invalid output " + actualOutput +" \n Output ideally should be 1 or 0" );
@@ -118,7 +139,6 @@ public class PerceptronLearningAlgo {
 			// If our output matches
 			if(output == actualOutput)
 			{
-				System.out.println(weight.toString());
 				// TODO: Check do we need to do anything here?
 				continue;
 			}
@@ -130,7 +150,6 @@ public class PerceptronLearningAlgo {
 				{
 					weight.set(i,weight.get(i) +  row.get(i));
 				}
-				System.out.println(weight.toString());
 			}
 			else if(output > actualOutput)
 				// output is 1 and should be 0
@@ -140,7 +159,6 @@ public class PerceptronLearningAlgo {
 				{
 					weight.set(i,weight.get(i) -  row.get(i));
 				}
-				System.out.println(weight.toString());
 			}
 		}
 	}

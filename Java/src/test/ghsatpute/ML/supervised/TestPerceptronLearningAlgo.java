@@ -1,10 +1,12 @@
 package test.ghsatpute.ML.supervised;
 
+import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
 import org.junit.Test;
 
+import ghsatpute.IO.file.CSV;
 import ghsatpute.ML.supervised.PerceptronLearningAlgo;
 
 public class TestPerceptronLearningAlgo {
@@ -12,7 +14,7 @@ public class TestPerceptronLearningAlgo {
 	@Test
 	public  void testPerceptronLearningAlgo()
 	{
-		PerceptronLearningAlgo PLA = new PerceptronLearningAlgo("pima-indians-diabetes.data");
+		PerceptronLearningAlgo PLA = new PerceptronLearningAlgo("pima-indians-diabetes.data", 1);
 		
 		/*
 		for(Double weight : PLA.getWeight())
@@ -20,19 +22,29 @@ public class TestPerceptronLearningAlgo {
 			System.out.println(weight +  "\t");
 		}*/
 		List<Double> list = new ArrayList<Double>();
-
-
-		list.add(1.0);   // 1
-		list.add(81.0);
-		list.add(74.0);
-		list.add(41.0);
-		list.add(57.0);   // 5
-		list.add(46.3);
-		list.add(1.096);
-		list.add(32.0);  // 8
 		
-		System.out.println(list.toString());
-		System.out.println("Outcome for given list is : "+ PLA.getOutcome(list));
+		// Read the data, run the getOutcome on same data and analyze correctness of algorithm
+		try {
+			List<ArrayList<Double>> data = CSV.readCSVDouble("pima-indians-diabetes.data");
+			int correct = 0;
+			for(ArrayList<Double> row : data)
+			{
+				
+				int actualOutput = (int)(double)row.remove(row.size() - 1);
+				int algoOutput = (int)PLA.getOutcome(row);
+				
+				// If output from algorithm matches the actual output then incremnt the correct
+				if(actualOutput == algoOutput)
+					correct++;
+				
+			}
+			System.out.println("Correctness of algorithm : " + correct + " / " + data.size());
+			System.out.println("In percentage : " + ((double)correct/data.size() * 100) );
+			
+		} catch (IOException e) {
+			// TODO Auto-generated catch block
+			System.out.println(e.getMessage());
+		}
 	}
 
 }
